@@ -14,25 +14,35 @@ st.set_page_config(
 )
 
 # =============================
-# CUSTOM STYLE
+# CUSTOM CSS
 # =============================
 st.markdown("""
 <style>
 
-/* MAIN BACKGROUND */
+/* MAIN BACKGROUND (WHITE CLINICAL CLEAN) */
 .stApp {
-    background: #f5f0e6;
+    background: #ffffff;
 }
 
-/* SIDEBAR */
+/* SIDEBAR (SOFT BLUR WHITE LOOK) */
 section[data-testid="stSidebar"] {
-    background-color: #e3d7c3 !important;
+    background: rgba(245, 245, 245, 0.85) !important;
+    backdrop-filter: blur(8px);
     min-width: 430px !important;
 }
 
 /* SIDEBAR TEXT */
 section[data-testid="stSidebar"] * {
     color: #1f1f1f;
+}
+
+/* SIDEBAR TITLE */
+.sidebar-title {
+    color: #0b1f3a;
+    font-size: 22px;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 18px;
 }
 
 /* HEADER */
@@ -43,49 +53,51 @@ section[data-testid="stSidebar"] * {
     text-align: center;
 }
 
+/* TITLE */
 .title {
     color: white;
     font-size: 60px;
     font-weight: 900;
 }
 
+/* SUBTITLE */
 .subtitle {
     color: #d6d6d6;
     font-size: 14px;
 }
 
-/* MAIN CONTENT */
+/* MAIN CONTAINER */
 .block-container {
     background-color: #ffffff;
     padding: 2rem;
 }
 
 /* =============================
-   DEFAULT BUTTONS (NOT AFFECT RUN ANALYSIS)
+   ONLY RUN ANALYSIS BUTTON
+   (ISOLATED STYLE)
 ============================= */
-div.stButton > button {
-    background-color: #0b1f3a;
-    color: white;
-    font-weight: 600;
-    border-radius: 10px;
+
+.run-btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 25px;
 }
 
-/* =============================
-   ONLY RUN ANALYSIS BUTTON (SIDEBAR ONLY)
-============================= */
-section[data-testid="stSidebar"] div.stButton > button {
-    background-color: #d90429 !important;
+/* TARGET ONLY THIS BUTTON */
+.run-btn-container button {
+    background-color: #d60000 !important;
     color: white !important;
     font-size: 18px !important;
     font-weight: 900 !important;
-    height: 60px !important;
     width: 100% !important;
+    height: 55px !important;
     border-radius: 12px !important;
+    border: none !important;
 }
 
-/* HOVER EFFECT FOR RUN ANALYSIS */
-section[data-testid="stSidebar"] div.stButton > button:hover {
-    background-color: #a1031f !important;
+/* HOVER */
+.run-btn-container button:hover {
+    background-color: #a80000 !important;
 }
 
 </style>
@@ -112,7 +124,7 @@ scaler = pickle.load(open("model/scaler.pkl", "rb"))
 # =============================
 # SIDEBAR INPUT
 # =============================
-st.sidebar.markdown("### 🧾 Patient Clinical Data")
+st.sidebar.markdown('<div class="sidebar-title">🧾 Patient Clinical Data</div>', unsafe_allow_html=True)
 
 col1, col2 = st.sidebar.columns(2)
 
@@ -129,9 +141,11 @@ with col2:
     dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 
 # =============================
-# RUN ANALYSIS (ONLY THIS BUTTON IS RED)
+# RUN ANALYSIS (ISOLATED BUTTON)
 # =============================
+st.sidebar.markdown('<div class="run-btn-container">', unsafe_allow_html=True)
 predict = st.sidebar.button("🔍 RUN ANALYSIS")
+st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
 # =============================
 # MODEL LOGIC
@@ -198,7 +212,7 @@ with tab1:
         st.info("Enter patient data and click RUN ANALYSIS.")
 
 # =============================
-# TAB 2
+# TAB 2 (SIDE-BY-SIDE FIX)
 # =============================
 with tab2:
 
@@ -214,14 +228,12 @@ with tab2:
     colA, colB = st.columns(2)
 
     with colA:
-        st.metric("Accuracy", "77%")
-        st.metric("Precision", "75%")
-        st.metric("Recall", "73%")
-        st.metric("F1 Score", "74%")
+        for k, v in metrics.items():
+            st.metric(k, f"{v*100:.2f}%")
 
     with colB:
         fig, ax = plt.subplots()
-        ax.bar(metrics.keys(), metrics.values(), color="#0b1f3a")
+        ax.bar(metrics.keys(), metrics.values(), color="#d60000")
         ax.set_ylim(0, 1)
         ax.set_title("Model Performance")
         st.pyplot(fig)

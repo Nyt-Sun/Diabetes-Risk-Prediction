@@ -14,48 +14,45 @@ st.set_page_config(
 )
 
 # -----------------------------
-# STYLE
+# HEADER
 # -----------------------------
 st.markdown("""
 <style>
 
-/* Background */
 .stApp {
     background: linear-gradient(to right, #eef3f8, #d9e6f2);
 }
 
-/* HEADER BOX */
+/* HEADER */
 .header {
     background-color: #0b1f3a;
-    padding: 25px;
+    padding: 22px;
     border-radius: 18px;
     text-align: center;
 }
 
-/* BIG TITLE */
 .title {
     color: white;
-    font-size: 48px;
+    font-size: 46px;
     font-weight: 800;
 }
 
-/* SUBTITLE */
 .subtitle {
     color: #cfd8e3;
-    font-size: 15px;
+    font-size: 14px;
 }
 
-/* SIDEBAR SMALLER SPACING */
+/* COMPACT SIDEBAR */
 section[data-testid="stSidebar"] {
-    width: 260px !important;
+    width: 320px !important;
 }
 
+.small-space {
+    margin-bottom: -10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------
-# HEADER (CENTERED TITLE + NEW LOGO)
-# -----------------------------
 st.markdown("""
 <div class="header">
     <div class="title">🏥 Diabetes Risk Predictor</div>
@@ -72,19 +69,22 @@ model = pickle.load(open("model/model.pkl", "rb"))
 scaler = pickle.load(open("model/scaler.pkl", "rb"))
 
 # -----------------------------
-# COMPACT SIDEBAR (NO LONG SCROLLING FEEL)
+# COMPACT SIDEBAR GRID INPUT
 # -----------------------------
-st.sidebar.header("🧾 Patient Data")
+st.sidebar.header("🧾 Patient Clinical Data")
 
-pregnancies = st.sidebar.number_input("Pregnancies", 0, 20, 1)
-glucose = st.sidebar.number_input("Glucose", 0, 200, 120)
-bp = st.sidebar.number_input("BP", 0, 150, 70)
-bmi = st.sidebar.number_input("BMI", 0.0, 70.0, 25.0)
-age = st.sidebar.number_input("Age", 1, 100, 30)
+col1, col2 = st.sidebar.columns(2)
 
-with st.sidebar.expander("🔬 Advanced Inputs"):
-    skin = st.number_input("Skin Thickness", 0, 100, 20)
+with col1:
+    pregnancies = st.number_input("Pregnancies", 0, 20, 1)
+    bp = st.number_input("Blood Pressure", 0, 150, 70)
     insulin = st.number_input("Insulin", 0, 900, 80)
+    age = st.number_input("Age", 1, 100, 30)
+
+with col2:
+    glucose = st.number_input("Glucose", 0, 200, 120)
+    skin = st.number_input("Skin Thickness", 0, 100, 20)
+    bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
     dpf = st.number_input("DPF", 0.0, 2.5, 0.5)
 
 predict = st.sidebar.button("🔍 Run Analysis")
@@ -111,12 +111,12 @@ with tab1:
         pred = model.predict(scaled)[0]
         prob = model.predict_proba(scaled)[0][1] * 100
 
-        col1, col2 = st.columns(2)
+        colA, colB = st.columns(2)
 
-        with col1:
+        with colA:
             st.metric("Risk Probability", f"{prob:.2f}%")
 
-        with col2:
+        with colB:
             if pred == 1:
                 st.error("🚨 HIGH RISK")
             else:
@@ -134,10 +134,10 @@ with tab1:
         st.bar_chart(df.set_index("Feature"))
 
     else:
-        st.info("Enter patient data in the sidebar and click **Run Analysis** (no scrolling needed).")
+        st.info("All patient fields are visible. Click **Run Analysis** to generate diagnosis.")
 
 # =========================================================
-# TAB 2 — MODEL PERFORMANCE
+# TAB 2 — MODEL PERFORMANCE (GRAPHICAL)
 # =========================================================
 with tab2:
 
@@ -178,13 +178,12 @@ DIABETES RISK REPORT
 ----------------------
 Pregnancies: {pregnancies}
 Glucose: {glucose}
-BP: {bp}
-BMI: {bmi}
-Age: {age}
-
-Skin: {skin}
+Blood Pressure: {bp}
+Skin Thickness: {skin}
 Insulin: {insulin}
+BMI: {bmi}
 DPF: {dpf}
+Age: {age}
 
 STATUS: {"HIGH RISK" if model.predict(scaler.transform([[pregnancies,glucose,bp,skin,insulin,bmi,dpf,age]]))[0] == 1 else "LOW RISK"}
         """
@@ -196,4 +195,4 @@ STATUS: {"HIGH RISK" if model.predict(scaler.transform([[pregnancies,glucose,bp,
         )
 
     else:
-        st.info("Run analysis first to generate report.")
+        st.info("Run analysis first to generate clinical report.")

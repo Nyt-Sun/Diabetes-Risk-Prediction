@@ -1,212 +1,67 @@
 import streamlit as st
 import numpy as np
-import pandas as pd
 import pickle
-import matplotlib.pyplot as plt
-import io
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc
-from reportlab.pdfgen import canvas
+import pandas as pd
 
-# =========================
-# PAGE CONFIG (HOSPITAL STYLE)
-# =========================
+# Load model
+model = pickle.load(open("model/diabetes_model.pkl", "rb"))
 
+# Page config
 st.set_page_config(
-    page_title="Diabetes Risk Prediction System",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title="Diabetes Risk Prediction",
+    layout="centered"
 )
 
-# =========================
-# LOAD MODEL
-# =========================
+st.title("🩺 Diabetes Risk Prediction System")
+st.write("Enter patient details below to predict diabetes risk.")
 
-model = pickle.load(open("model/model.pkl", "rb"))
-scaler = pickle.load(open("model/scaler.pkl", "rb"))
-X_test = pickle.load(open("model/X_test.pkl", "rb"))
-y_test = pickle.load(open("model/y_test.pkl", "rb"))
+# Sidebar info
+st.sidebar.header("About the App")
+st.sidebar.write(
+    "This app uses a Machine Learning model trained on the Pima Indians Diabetes Dataset."
+)
 
-# =========================
-# HEADER (HOSPITAL STYLE)
-# =========================
+# Inputs
+pregnancies = st.number_input("Pregnancies", 0, 20, 1)
+glucose = st.number_input("Glucose Level", 0, 300, 120)
+blood_pressure = st.number_input("Blood Pressure", 0, 150, 70)
+skin_thickness = st.number_input("Skin Thickness", 0, 100, 20)
+insulin = st.number_input("Insulin", 0, 900, 80)
+bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
+dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
+age = st.number_input("Age", 1, 120, 30)
 
-st.markdown("""
-    <div style="background-color:#0f4c81;padding:15px;border-radius:10px">
-        <h2 style="color:white;text-align:center;">
-            🏥 AI Clinical Decision Support System
-        </h2>
-    </div>
-""", unsafe_allow_html=True)
+# Prediction button
+if st.button("Predict"):
 
-st.write("")
+    features = np.array([[pregnancies, glucose, blood_pressure,
+                          skin_thickness, insulin, bmi, dpf, age]])
 
-# =========================
-# SESSION STATE
-# =========================
+    prediction = model.predict(features)
+    probability = model.predict_proba(features)
 
-if "pred" not in st.session_state:
-    st.session_state.pred = None
+    # Result
+    if prediction[0] == 1:
+        st.error(f"⚠️ High Risk of Diabetes\nProbability: {probability[0][1]*100:.2f}%")
+    else:
+        st.success(f"✅ Low Risk of Diabetes\nProbability: {probability[0][0]*100:.2f}%")
 
-if "prob" not in st.session_state:
-    st.session_state.prob = None
+    # Store result for download
+    result_df = pd.DataFrame({
+        "Pregnancies": [pregnancies],
+        "Glucose": [glucose],
+        "BloodPressure": [blood_pressure],
+        "SkinThickness": [skin_thickness],
+        "Insulin": [insulin],
+        "BMI": [bmi],
+        "DPF": [dpf],
+        "Age": [age],
+        "Prediction": [int(prediction[0])]
+    })
 
-# =========================
-# SIDEBAR (PATIENT INPUT PANEL)
-# =========================
-
-st.sidebar.header("🧾 Patient Clinical Data")
-
-labels = [
-    "Pregnancies", "Glucose", "BloodPressure", "SkinThickness",
-    "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"
-]
-
-inputs = []
-
-for label in labels:
-    value = st.sidebar.number_input(label, value=1.0)
-    inputs.append(value)
-
-input_array = np.array([inputs])
-input_scaled = scaler.transform(input_array)
-
-predict_btn = st.sidebar.button("🔍 Run Diagnosis")
-
-# =========================
-# MAIN DASHBOARD TABS
-# =========================
-
-tab1, tab2, tab3 = st.tabs([
-    "📊 Patient Diagnosis",
-    "📈 Model Performance",
-    "🧠 Clinical Report"
-])
-
-# =========================
-# TAB 1 - DIAGNOSIS DASHBOARD
-# =========================
-
-with tab1:
-
-    st.subheader("Patient Risk Assessment")
-
-    if predict_btn:
-
-        st.session_state.pred = model.predict(input_scaled)[0]
-        st.session_state.prob = model.predict_proba(input_scaled)[0][1]
-
-    if st.session_state.prob is not None:
-
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            st.metric("Risk Probability", f"{st.session_state.prob:.2%}")
-
-        with col2:
-            risk_level = "HIGH RISK" if st.session_state.pred == 1 else "LOW RISK"
-            st.metric("Risk Status", risk_level)
-
-        with col3:
-            st.metric("Clinical Confidence", "AI Model Output")
-
-        # =========================
-        # COLORED ALERT BOX
-        # =========================
-
-        if st.session_state.pred == 1:
-            st.error("⚠️ HIGH RISK DETECTED — Immediate clinical attention recommended.")
-        else:
-            st.success("✅ LOW RISK — No immediate concern detected.")
-
-        st.divider()
-
-        # =========================
-        # FEATURE IMPORTANCE
-        # =========================
-
-        if hasattr(model, "feature_importances_"):
-
-            st.subheader("🧠 Key Medical Indicators")
-
-            importance = pd.DataFrame({
-                "Feature": labels,
-                "Importance": model.feature_importances_
-            }).sort_values(by="Importance", ascending=False)
-
-            st.bar_chart(importance.set_index("Feature"))
-
-# =========================
-# TAB 2 - MODEL PERFORMANCE
-# =========================
-
-with tab2:
-
-    st.subheader("Model Evaluation Dashboard")
-
-    y_pred = model.predict(X_test)
-
-    cm = confusion_matrix(y_test, y_pred)
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.write("Confusion Matrix")
-        fig, ax = plt.subplots()
-        ConfusionMatrixDisplay(cm).plot(ax=ax)
-        st.pyplot(fig)
-
-    with col2:
-        st.write("ROC Curve")
-
-        y_score = model.predict_proba(X_test)[:, 1]
-
-        fpr, tpr, _ = roc_curve(y_test, y_score)
-        auc_score = auc(fpr, tpr)
-
-        fig, ax = plt.subplots()
-        ax.plot(fpr, tpr, label=f"AUC = {auc_score:.2f}")
-        ax.plot([0, 1], [0, 1], linestyle="--")
-        ax.legend()
-        ax.set_title("ROC Curve")
-
-        st.pyplot(fig)
-
-# =========================
-# TAB 3 - CLINICAL REPORT
-# =========================
-
-with tab3:
-
-    st.subheader("Medical Report Generator")
-
-    st.info("Generate a downloadable clinical summary for patient record.")
-
-    if st.button("Generate Report PDF"):
-
-        buffer = io.BytesIO()
-        c = canvas.Canvas(buffer)
-
-        c.drawString(100, 800, "AI Clinical Diabetes Risk Report")
-
-        pred_text = (
-            "HIGH RISK" if st.session_state.pred == 1 else "LOW RISK"
-        ) if st.session_state.pred is not None else "Not Generated"
-
-        prob_text = (
-            f"{st.session_state.prob:.2%}"
-        ) if st.session_state.prob is not None else "N/A"
-
-        c.drawString(100, 780, f"Diagnosis: {pred_text}")
-        c.drawString(100, 760, f"Probability: {prob_text}")
-
-        c.drawString(100, 720, "Recommendation: Consult healthcare provider if high risk.")
-
-        c.save()
-        buffer.seek(0)
-
-        st.download_button(
-            "Download Clinical Report",
-            buffer,
-            file_name="clinical_report.pdf",
-            mime="application/pdf"
-        )
+    st.download_button(
+        "⬇ Download Result as CSV",
+        result_df.to_csv(index=False),
+        "diabetes_prediction.csv",
+        "text/csv"
+    )

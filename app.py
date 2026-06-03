@@ -14,47 +14,52 @@ st.set_page_config(
 )
 
 # -----------------------------
-# STYLE (Navy Clinical Theme)
+# STYLE
 # -----------------------------
 st.markdown("""
 <style>
-.header-box {
+
+/* Background */
+.stApp {
+    background: linear-gradient(to right, #eef3f8, #d9e6f2);
+}
+
+/* HEADER BOX */
+.header {
     background-color: #0b1f3a;
-    padding: 20px;
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
+    padding: 25px;
+    border-radius: 18px;
+    text-align: center;
 }
 
-.logo {
-    width: 55px;
-    height: 55px;
-}
-
-.title-text {
+/* BIG TITLE */
+.title {
     color: white;
-    font-size: 34px;
-    font-weight: bold;
+    font-size: 48px;
+    font-weight: 800;
 }
 
-.sub-text {
+/* SUBTITLE */
+.subtitle {
     color: #cfd8e3;
-    font-size: 13px;
+    font-size: 15px;
 }
+
+/* SIDEBAR SMALLER SPACING */
+section[data-testid="stSidebar"] {
+    width: 260px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# HEADER (LOGO INSIDE TITLE BOX)
+# HEADER (CENTERED TITLE + NEW LOGO)
 # -----------------------------
 st.markdown("""
-<div class="header-box">
-    <img class="logo" src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"/>
-    <div>
-        <div class="title-text">Diabetes Risk Predictor</div>
-        <div class="sub-text">AI-powered Clinical Decision Support System</div>
-    </div>
+<div class="header">
+    <div class="title">🏥 Diabetes Risk Predictor</div>
+    <div class="subtitle">AI Clinical Decision Support System</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -67,18 +72,20 @@ model = pickle.load(open("model/model.pkl", "rb"))
 scaler = pickle.load(open("model/scaler.pkl", "rb"))
 
 # -----------------------------
-# SIDEBAR INPUT
+# COMPACT SIDEBAR (NO LONG SCROLLING FEEL)
 # -----------------------------
-st.sidebar.header("🧾 Patient Data Input")
+st.sidebar.header("🧾 Patient Data")
 
 pregnancies = st.sidebar.number_input("Pregnancies", 0, 20, 1)
 glucose = st.sidebar.number_input("Glucose", 0, 200, 120)
-bp = st.sidebar.number_input("Blood Pressure", 0, 150, 70)
-skin = st.sidebar.number_input("Skin Thickness", 0, 100, 20)
-insulin = st.sidebar.number_input("Insulin", 0, 900, 80)
+bp = st.sidebar.number_input("BP", 0, 150, 70)
 bmi = st.sidebar.number_input("BMI", 0.0, 70.0, 25.0)
-dpf = st.sidebar.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 age = st.sidebar.number_input("Age", 1, 100, 30)
+
+with st.sidebar.expander("🔬 Advanced Inputs"):
+    skin = st.number_input("Skin Thickness", 0, 100, 20)
+    insulin = st.number_input("Insulin", 0, 900, 80)
+    dpf = st.number_input("DPF", 0.0, 2.5, 0.5)
 
 predict = st.sidebar.button("🔍 Run Analysis")
 
@@ -95,8 +102,6 @@ tab1, tab2, tab3 = st.tabs([
 # TAB 1 — PATIENT DIAGNOSIS
 # =========================================================
 with tab1:
-
-    st.subheader("Patient Risk Assessment")
 
     if predict:
 
@@ -122,30 +127,22 @@ with tab1:
         st.subheader("🧠 Key Medical Indicators")
 
         df = pd.DataFrame({
-            "Feature": [
-                "Pregnancies", "Glucose", "Blood Pressure",
-                "Skin Thickness", "Insulin", "BMI", "DPF", "Age"
-            ],
-            "Value": [
-                pregnancies, glucose, bp, skin, insulin, bmi, dpf, age
-            ]
+            "Feature": ["Pregnancies","Glucose","BP","Skin","Insulin","BMI","DPF","Age"],
+            "Value": [pregnancies,glucose,bp,skin,insulin,bmi,dpf,age]
         })
 
         st.bar_chart(df.set_index("Feature"))
 
     else:
-        st.info("Enter patient data and click Run Analysis.")
+        st.info("Enter patient data in the sidebar and click **Run Analysis** (no scrolling needed).")
 
 # =========================================================
-# TAB 2 — MODEL PERFORMANCE (GRAPHICAL)
+# TAB 2 — MODEL PERFORMANCE
 # =========================================================
 with tab2:
 
     st.subheader("📈 Model Evaluation Dashboard")
 
-    st.write("Random Forest Classifier Performance Overview")
-
-    # Simulated metrics (replace with real if you later compute them)
     metrics = {
         "Accuracy": 0.77,
         "Precision": 0.75,
@@ -156,17 +153,15 @@ with tab2:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.metric("Accuracy", f"{metrics['Accuracy']*100:.2f}%")
-        st.metric("Precision", f"{metrics['Precision']*100:.2f}%")
-        st.metric("Recall", f"{metrics['Recall']*100:.2f}%")
-        st.metric("F1 Score", f"{metrics['F1 Score']*100:.2f}%")
+        for k, v in metrics.items():
+            st.metric(k, f"{v*100:.2f}%")
 
     with col2:
         fig, ax = plt.subplots()
         ax.bar(metrics.keys(), metrics.values(), color="#0b1f3a")
         ax.set_ylim(0, 1)
-        ax.set_title("Model Performance Chart")
-        plt.xticks(rotation=30)
+        ax.set_title("Performance Chart")
+        plt.xticks(rotation=25)
         st.pyplot(fig)
 
 # =========================================================
@@ -174,27 +169,28 @@ with tab2:
 # =========================================================
 with tab3:
 
-    st.subheader("Clinical Report Generator")
+    st.subheader("🧾 Clinical Report")
 
     if predict:
 
         report = f"""
-DIABETES RISK CLINICAL REPORT
---------------------------------
+DIABETES RISK REPORT
+----------------------
 Pregnancies: {pregnancies}
 Glucose: {glucose}
-Blood Pressure: {bp}
-Skin Thickness: {skin}
-Insulin: {insulin}
+BP: {bp}
 BMI: {bmi}
-DPF: {dpf}
 Age: {age}
+
+Skin: {skin}
+Insulin: {insulin}
+DPF: {dpf}
 
 STATUS: {"HIGH RISK" if model.predict(scaler.transform([[pregnancies,glucose,bp,skin,insulin,bmi,dpf,age]]))[0] == 1 else "LOW RISK"}
         """
 
         st.download_button(
-            "📄 Download Clinical Report",
+            "📄 Download Report",
             report,
             file_name="diabetes_report.txt"
         )

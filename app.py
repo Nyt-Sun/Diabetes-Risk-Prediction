@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import pickle
 import numpy as np
@@ -35,7 +36,7 @@ st.markdown("""
 
 .header-title {
     color: white;
-    font-size: 48px;
+    font-size: 52px;
     font-weight: 800;
 }
 
@@ -49,18 +50,18 @@ section[data-testid="stSidebar"] {
     background-color: #e3d7c3;
 }
 
-/* SIDEBAR HEADER */
+/* SIDEBAR TITLE */
 .sidebar-title {
     text-align: center;
     color: #0b1f3a;
     font-size: 24px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
-/* INPUT BOXES */
+/* INPUTS */
 [data-testid="stNumberInput"] {
-    margin-bottom: 8px;
+    width: 100%;
 }
 
 .stNumberInput input {
@@ -69,21 +70,21 @@ section[data-testid="stSidebar"] {
 
 /* BUTTON */
 div.stButton > button {
-    width: 100%;
     background-color: #0b1f3a;
     color: white;
-    font-weight: 800;
     font-size: 18px;
+    font-weight: 800;
     border-radius: 12px;
-    padding: 12px;
     border: none;
+    padding: 12px;
+    width: 100%;
 }
 
 div.stButton > button:hover {
     background-color: #163a63;
 }
 
-/* MAIN CONTENT */
+/* MAIN PANEL */
 .block-container {
     background-color: #f8f3ea;
     border-radius: 12px;
@@ -98,7 +99,9 @@ div.stButton > button:hover {
 # =====================================
 st.markdown("""
 <div class="header-container">
-    <div class="header-title">🏥 Diabetes Risk Predictor</div>
+    <div class="header-title">
+        🏥 Diabetes Risk Predictor
+    </div>
     <div class="header-subtitle">
         AI Clinical Decision Support System
     </div>
@@ -119,47 +122,30 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-pregnancies = st.sidebar.number_input(
-    "Pregnancies", 0, 20, 1
-)
+col1, col2 = st.sidebar.columns(2)
 
-glucose = st.sidebar.number_input(
-    "Glucose", 0, 300, 120
-)
+with col1:
+    pregnancies = st.number_input("Pregnancies", 0, 20, 1)
+    blood_pressure = st.number_input("Blood Pressure", 0, 200, 70)
+    insulin = st.number_input("Insulin", 0, 900, 80)
+    age = st.number_input("Age", 1, 120, 30)
 
-blood_pressure = st.sidebar.number_input(
-    "Blood Pressure", 0, 200, 70
-)
-
-skin_thickness = st.sidebar.number_input(
-    "Skin Thickness", 0, 100, 20
-)
-
-insulin = st.sidebar.number_input(
-    "Insulin", 0, 900, 80
-)
-
-bmi = st.sidebar.number_input(
-    "BMI", 0.0, 70.0, 25.0
-)
-
-dpf = st.sidebar.number_input(
-    "Diabetes Pedigree Function",
-    0.0,
-    3.0,
-    0.50
-)
-
-age = st.sidebar.number_input(
-    "Age", 1, 120, 30
-)
+with col2:
+    glucose = st.number_input("Glucose", 0, 300, 120)
+    skin_thickness = st.number_input("Skin Thickness", 0, 100, 20)
+    bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
+    dpf = st.number_input(
+        "Diabetes Pedigree Function",
+        0.0,
+        3.0,
+        0.50
+    )
 
 st.sidebar.markdown("<br>", unsafe_allow_html=True)
 
-# CENTERED BUTTON
-left, center, right = st.sidebar.columns([1, 4, 1])
+b1, b2, b3 = st.sidebar.columns([1, 3, 1])
 
-with center:
+with b2:
     predict = st.button(
         "🔍 RUN ANALYSIS",
         use_container_width=True
@@ -175,7 +161,7 @@ tab1, tab2, tab3 = st.tabs([
 ])
 
 # =====================================
-# PATIENT DIAGNOSIS
+# TAB 1 - DIAGNOSIS
 # =====================================
 with tab1:
 
@@ -197,17 +183,19 @@ with tab1:
         scaled_features = scaler.transform(features)
 
         prediction = model.predict(scaled_features)[0]
-        probability = model.predict_proba(scaled_features)[0][1] * 100
+        probability = model.predict_proba(
+            scaled_features
+        )[0][1] * 100
 
-        c1, c2 = st.columns(2)
+        m1, m2 = st.columns(2)
 
-        with c1:
+        with m1:
             st.metric(
                 "Risk Probability",
                 f"{probability:.2f}%"
             )
 
-        with c2:
+        with m2:
             if prediction == 1:
                 st.error("🚨 HIGH RISK")
             else:
@@ -246,11 +234,11 @@ with tab1:
 
     else:
         st.info(
-            "Enter patient information and click RUN ANALYSIS."
+            "Enter patient data and click RUN ANALYSIS."
         )
 
 # =====================================
-# MODEL PERFORMANCE
+# TAB 2 - MODEL PERFORMANCE
 # =====================================
 with tab2:
 
@@ -263,29 +251,14 @@ with tab2:
         "F1 Score": 0.74
     }
 
-    m1, m2, m3, m4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
 
-    m1.metric(
-        "Accuracy",
-        f"{metrics['Accuracy']*100:.1f}%"
-    )
+    c1.metric("Accuracy", "77%")
+    c2.metric("Precision", "75%")
+    c3.metric("Recall", "73%")
+    c4.metric("F1 Score", "74%")
 
-    m2.metric(
-        "Precision",
-        f"{metrics['Precision']*100:.1f}%"
-    )
-
-    m3.metric(
-        "Recall",
-        f"{metrics['Recall']*100:.1f}%"
-    )
-
-    m4.metric(
-        "F1 Score",
-        f"{metrics['F1 Score']*100:.1f}%"
-    )
-
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(8,4))
 
     ax.bar(
         metrics.keys(),
@@ -299,7 +272,7 @@ with tab2:
     st.pyplot(fig)
 
 # =====================================
-# CLINICAL REPORT
+# TAB 3 - REPORT
 # =====================================
 with tab3:
 
@@ -307,7 +280,7 @@ with tab3:
 
     if predict:
 
-        report = f"""
+        report = f'''
 DIABETES RISK CLINICAL REPORT
 ================================
 
@@ -324,10 +297,7 @@ Risk Probability: {probability:.2f}%
 
 Risk Status:
 {"HIGH RISK" if prediction == 1 else "LOW RISK"}
-
-Generated by:
-Diabetes Risk Predictor
-"""
+'''
 
         st.download_button(
             label="📄 Download Clinical Report",
@@ -340,3 +310,4 @@ Diabetes Risk Predictor
         st.info(
             "Run analysis first to generate a report."
         )
+```

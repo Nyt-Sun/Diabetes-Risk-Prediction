@@ -1,62 +1,130 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
 import pickle
-import os
+import matplotlib.pyplot as plt
 
-st.title("🩺 Diabetes Risk Prediction App")
+# =========================
+# LOAD MODEL & SCALER
+# =========================
 
-st.sidebar.title("About App")
-st.sidebar.info("""
-This app predicts diabetes risk using machine learning trained on the Pima Indians dataset.
-""")
+model = pickle.load(open("model/model.pkl", "rb"))
+scaler = pickle.load(open("model/scaler.pkl", "rb"))
 
-# Check if model exists
-model_path = "model/model.pkl"
-scaler_path = "model/scaler.pkl"
+# =========================
+# PAGE CONFIG
+# =========================
 
-if not os.path.exists(model_path) or not os.path.exists(scaler_path):
-    st.error("Model files not found. Run train.py first.")
-    st.stop()
+st.set_page_config(
+    page_title="Diabetes Risk Predictor",
+    page_icon="🩺",
+    layout="wide"
+)
 
-# Load model safely
-model = pickle.load(open(model_path, "rb"))
-scaler = pickle.load(open(scaler_path, "rb"))
+# =========================
+# TITLE
+# =========================
 
-st.write("Enter patient details below:")
+st.title("🩺 Diabetes Risk Prediction System")
 
-pregnancies = st.number_input("Pregnancies", 0, 20, 1)
-glucose = st.number_input("Glucose", 0, 200, 120)
-blood_pressure = st.number_input("Blood Pressure", 0, 150, 70)
-skin_thickness = st.number_input("Skin Thickness", 0, 100, 20)
-insulin = st.number_input("Insulin", 0, 900, 80)
-bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
-dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
-age = st.number_input("Age", 1, 100, 30)
+st.markdown(
+    "Predict diabetes risk using Machine Learning (Pima Indians Dataset)"
+)
 
-if st.button("Predict"):
-    data = np.array([[pregnancies, glucose, blood_pressure,
-                      skin_thickness, insulin, bmi, dpf, age]])
+# =========================
+# TABS
+# =========================
 
-    data = scaler.transform(data)
+tab1, tab2, tab3 = st.tabs([
+    "🔮 Prediction",
+    "📊 Model Insights",
+    "📂 Dataset"
+])
 
-    prediction = model.predict(data)
-    probability = model.predict_proba(data)[0]
+# =========================
+# SIDEBAR INPUTS
+# =========================
+
+st.sidebar.header("Patient Inputs")
+
+pregnancies = st.sidebar.number_input("Pregnancies", 0, 20, 1)
+glucose = st.sidebar.number_input("Glucose", 0, 200, 120)
+blood_pressure = st.sidebar.number_input("Blood Pressure", 0, 150, 70)
+skin_thickness = st.sidebar.number_input("Skin Thickness", 0, 100, 20)
+insulin = st.sidebar.number_input("Insulin", 0, 900, 80)
+bmi = st.sidebar.number_input("BMI", 0.0, 70.0, 25.0)
+dpf = st.sidebar.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
+age = st.sidebar.number_input("Age", 1, 120, 30)
+
+input_data = np.array([[pregnancies, glucose, blood_pressure,
+                        skin_thickness, insulin, bmi, dpf, age]])
+
+input_scaled = scaler.transform(input_data)
+
+# =========================
+# TAB 1 - PREDICTION
+# =========================
+
+with tab1:
 
     st.subheader("Prediction Result")
 
-    if prediction[0] == 1:
-        st.error(f"⚠️ High Risk of Diabetes")
-    else:
-        st.success(f"✅ Low Risk of Diabetes")
+    if st.button("Predict Diabetes Risk"):
 
-    st.info(f"""
-    Confidence Scores:
-    - No Diabetes: {probability[0]*100:.2f}%
-    - Diabetes: {probability[1]*100:.2f}%
-    """)
+        prediction = model.predict(input_scaled)
+        probability = model.predict_proba(input_scaled)[0][1]
 
-    st.subheader("How it works")
-st.write("""
-The model uses Logistic Regression trained on medical features such as glucose, BMI, and insulin levels.
-It predicts the probability of diabetes risk.
-""")
+        if prediction[0] == 1:
+            st.error("⚠️ High Risk of Diabetes")
+        else:
+            st.success("✅ Low Risk of Diabetes")
+
+        st.metric("Risk Probability", f"{probability:.2%}")
+
+        st.progress(float(probability))
+
+# =========================
+# TAB 2 - MODEL INSIGHTS
+# =========================
+
+with tab2:
+
+    st.subheader("Feature Importance")
+
+    features = [
+        "Pregnancies", "Glucose", "BloodPressure", "SkinThickness",
+        "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"
+    ]
+
+    importance_df = pd.DataFrame({
+        "Feature": features,
+        "Importance": model.feature_importances_
+    }).sort_values(by="Importance", ascending=True)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.barh(importance_df["Feature"], importance_df["Importance"])
+    ax.set_title("Feature Importance")
+
+    st.pyplot(fig)
+
+# =========================
+# TAB 3 - DATASET
+# =========================
+
+with tab3:
+
+    st.subheader("Dataset Preview")
+
+    df = pd.read_csv("data/diabetes.csv")
+
+    st.dataframe(df.head())
+
+    st.write("Shape:", df.shape)
+
+# =========================
+# FOOTER
+# =========================
+
+st.markdown("---")
+
+st.caption("AI/ML Capstone Project • Diabetes Risk Prediction")

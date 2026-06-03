@@ -14,20 +14,19 @@ st.set_page_config(
 )
 
 # =============================
-# CUSTOM CSS
+# CUSTOM CSS (ONLY COLOR CHANGED)
 # =============================
 st.markdown("""
 <style>
 
-/* MAIN BACKGROUND (WHITE CLINICAL CLEAN) */
+/* MAIN BACKGROUND (BEIGE) */
 .stApp {
-    background: #ffffff;
+    background: #f5f0e6;
 }
 
-/* SIDEBAR (SOFT BLUR WHITE LOOK) */
+/* SIDEBAR (DARKER BEIGE) */
 section[data-testid="stSidebar"] {
-    background: rgba(245, 245, 245, 0.85) !important;
-    backdrop-filter: blur(8px);
+    background: #e3d7c3 !important;
     min-width: 430px !important;
 }
 
@@ -68,22 +67,17 @@ section[data-testid="stSidebar"] * {
 
 /* MAIN CONTAINER */
 .block-container {
-    background-color: #ffffff;
+    background-color: #f5f0e6;
     padding: 2rem;
 }
 
-/* =============================
-   ONLY RUN ANALYSIS BUTTON
-   (ISOLATED STYLE)
-============================= */
-
+/* RUN BUTTON (UNCHANGED) */
 .run-btn-container {
     display: flex;
     justify-content: center;
     margin-top: 25px;
 }
 
-/* TARGET ONLY THIS BUTTON */
 .run-btn-container button {
     background-color: #d60000 !important;
     color: white !important;
@@ -95,7 +89,6 @@ section[data-testid="stSidebar"] * {
     border: none !important;
 }
 
-/* HOVER */
 .run-btn-container button:hover {
     background-color: #a80000 !important;
 }
@@ -141,7 +134,7 @@ with col2:
     dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 
 # =============================
-# RUN ANALYSIS (ISOLATED BUTTON)
+# RUN ANALYSIS
 # =============================
 st.sidebar.markdown('<div class="run-btn-container">', unsafe_allow_html=True)
 predict = st.sidebar.button("🔍 RUN ANALYSIS")
@@ -212,7 +205,7 @@ with tab1:
         st.info("Enter patient data and click RUN ANALYSIS.")
 
 # =============================
-# TAB 2 (SIDE-BY-SIDE FIX)
+# TAB 2
 # =============================
 with tab2:
 

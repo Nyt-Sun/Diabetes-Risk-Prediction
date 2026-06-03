@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # =============================
-# CUSTOM STYLE (HOSPITAL UI + BIG BUTTON FIX)
+# CUSTOM STYLE
 # =============================
 st.markdown("""
 <style>
@@ -24,7 +24,7 @@ st.markdown("""
     background: #f5f0e6;
 }
 
-/* SIDEBAR WIDTH */
+/* SIDEBAR */
 section[data-testid="stSidebar"] {
     background-color: #e3d7c3 !important;
     min-width: 430px !important;
@@ -35,15 +35,6 @@ section[data-testid="stSidebar"] * {
     color: #1f1f1f;
 }
 
-/* NAVY SIDEBAR TITLE */
-.sidebar-title {
-    color: #0b1f3a;
-    font-size: 22px;
-    font-weight: 900;
-    text-align: center;
-    margin-bottom: 18px;
-}
-
 /* HEADER */
 .header {
     background-color: #0b1f3a;
@@ -52,51 +43,49 @@ section[data-testid="stSidebar"] * {
     text-align: center;
 }
 
-/* TITLE */
 .title {
     color: white;
     font-size: 60px;
     font-weight: 900;
 }
 
-/* SUBTITLE */
 .subtitle {
     color: #d6d6d6;
     font-size: 14px;
 }
 
-/* MAIN CONTAINER */
+/* MAIN CONTENT */
 .block-container {
-    background-color: #f8f3ea;
+    background-color: #ffffff;
     padding: 2rem;
+}
+
+/* =============================
+   DEFAULT BUTTONS (NOT AFFECT RUN ANALYSIS)
+============================= */
+div.stButton > button {
+    background-color: #0b1f3a;
+    color: white;
+    font-weight: 600;
     border-radius: 10px;
 }
 
 /* =============================
-   BIG CENTERED RUN BUTTON
+   ONLY RUN ANALYSIS BUTTON (SIDEBAR ONLY)
 ============================= */
-
-div.stButton {
-    display: flex;
-    justify-content: center;
-}
-
-/* BUTTON STYLE */
-div.stButton > button {
-    background-color: #0b1f3a;
+section[data-testid="stSidebar"] div.stButton > button {
+    background-color: #d90429 !important;
     color: white !important;
-    font-size: 18px;
-    font-weight: 900;
-    height: 55px;
-    width: 85%;
-    border-radius: 12px;
-    margin-top: 25px;
-    margin-bottom: 10px;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    height: 60px !important;
+    width: 100% !important;
+    border-radius: 12px !important;
 }
 
-/* BUTTON HOVER */
-div.stButton > button:hover {
-    background-color: #163a63;
+/* HOVER EFFECT FOR RUN ANALYSIS */
+section[data-testid="stSidebar"] div.stButton > button:hover {
+    background-color: #a1031f !important;
 }
 
 </style>
@@ -123,7 +112,7 @@ scaler = pickle.load(open("model/scaler.pkl", "rb"))
 # =============================
 # SIDEBAR INPUT
 # =============================
-st.sidebar.markdown('<div class="sidebar-title">🧾 Patient Clinical Data</div>', unsafe_allow_html=True)
+st.sidebar.markdown("### 🧾 Patient Clinical Data")
 
 col1, col2 = st.sidebar.columns(2)
 
@@ -140,7 +129,7 @@ with col2:
     dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 
 # =============================
-# RUN ANALYSIS BUTTON
+# RUN ANALYSIS (ONLY THIS BUTTON IS RED)
 # =============================
 predict = st.sidebar.button("🔍 RUN ANALYSIS")
 
@@ -209,7 +198,7 @@ with tab1:
         st.info("Enter patient data and click RUN ANALYSIS.")
 
 # =============================
-# TAB 2 (UPDATED SIDE-BY-SIDE)
+# TAB 2
 # =============================
 with tab2:
 
@@ -224,24 +213,17 @@ with tab2:
 
     colA, colB = st.columns(2)
 
-    # LEFT: SCORES
     with colA:
-        st.markdown("### 📊 Model Scores")
         st.metric("Accuracy", "77%")
         st.metric("Precision", "75%")
         st.metric("Recall", "73%")
         st.metric("F1 Score", "74%")
 
-    # RIGHT: GRAPH
     with colB:
-        st.markdown("### 📈 Performance Map")
-
         fig, ax = plt.subplots()
         ax.bar(metrics.keys(), metrics.values(), color="#0b1f3a")
         ax.set_ylim(0, 1)
-        ax.set_title("Model Performance Comparison")
-        ax.tick_params(axis='x', rotation=20)
-
+        ax.set_title("Model Performance")
         st.pyplot(fig)
 
 # =============================

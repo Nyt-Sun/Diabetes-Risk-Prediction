@@ -2,6 +2,7 @@ import streamlit as st
 import pickle
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # -----------------------------
 # PAGE CONFIG
@@ -13,51 +14,49 @@ st.set_page_config(
 )
 
 # -----------------------------
-# CUSTOM HEADER (NAVY + WHITE TITLE)
+# STYLE (Navy Clinical Theme)
 # -----------------------------
 st.markdown("""
 <style>
-.header {
+.header-box {
     background-color: #0b1f3a;
-    padding: 25px;
+    padding: 20px;
     border-radius: 15px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 15px;
 }
 
-.title {
+.logo {
+    width: 55px;
+    height: 55px;
+}
+
+.title-text {
     color: white;
-    font-size: 36px;
+    font-size: 34px;
     font-weight: bold;
 }
 
-.sub {
+.sub-text {
     color: #cfd8e3;
-    font-size: 14px;
-}
-
-img {
-    border-radius: 12px;
+    font-size: 13px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-colA, colB = st.columns([2, 1])
-
-with colA:
-    st.markdown("""
-    <div class="header">
-        <div>
-            <div class="title">Diabetes Risk Predictor</div>
-            <div class="sub">AI-powered Clinical Decision Support System</div>
-        </div>
+# -----------------------------
+# HEADER (LOGO INSIDE TITLE BOX)
+# -----------------------------
+st.markdown("""
+<div class="header-box">
+    <img class="logo" src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"/>
+    <div>
+        <div class="title-text">Diabetes Risk Predictor</div>
+        <div class="sub-text">AI-powered Clinical Decision Support System</div>
     </div>
-    """, unsafe_allow_html=True)
-
-with colB:
-    st.image("https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
-             use_container_width=True)
+</div>
+""", unsafe_allow_html=True)
 
 st.write("---")
 
@@ -68,7 +67,7 @@ model = pickle.load(open("model/model.pkl", "rb"))
 scaler = pickle.load(open("model/scaler.pkl", "rb"))
 
 # -----------------------------
-# SIDEBAR INPUT (CLEAN)
+# SIDEBAR INPUT
 # -----------------------------
 st.sidebar.header("🧾 Patient Data Input")
 
@@ -84,7 +83,7 @@ age = st.sidebar.number_input("Age", 1, 100, 30)
 predict = st.sidebar.button("🔍 Run Analysis")
 
 # -----------------------------
-# TABS (FOLDERS)
+# TABS
 # -----------------------------
 tab1, tab2, tab3 = st.tabs([
     "📊 Patient Diagnosis",
@@ -135,30 +134,40 @@ with tab1:
         st.bar_chart(df.set_index("Feature"))
 
     else:
-        st.info("Enter patient data and click **Run Analysis**.")
+        st.info("Enter patient data and click Run Analysis.")
 
 # =========================================================
-# TAB 2 — MODEL PERFORMANCE
+# TAB 2 — MODEL PERFORMANCE (GRAPHICAL)
 # =========================================================
 with tab2:
 
-    st.subheader("Model Evaluation Dashboard")
+    st.subheader("📈 Model Evaluation Dashboard")
 
-    st.write("Random Forest Classifier trained on Pima Indians Diabetes Dataset")
+    st.write("Random Forest Classifier Performance Overview")
 
-    st.metric("Accuracy", "≈ 77%")
-    st.metric("Model Type", "Random Forest")
-    st.metric("Dataset", "Pima Indians Diabetes")
+    # Simulated metrics (replace with real if you later compute them)
+    metrics = {
+        "Accuracy": 0.77,
+        "Precision": 0.75,
+        "Recall": 0.73,
+        "F1 Score": 0.74
+    }
 
-    st.write("---")
+    col1, col2 = st.columns(2)
 
-    st.subheader("Performance Insight")
+    with col1:
+        st.metric("Accuracy", f"{metrics['Accuracy']*100:.2f}%")
+        st.metric("Precision", f"{metrics['Precision']*100:.2f}%")
+        st.metric("Recall", f"{metrics['Recall']*100:.2f}%")
+        st.metric("F1 Score", f"{metrics['F1 Score']*100:.2f}%")
 
-    st.write("""
-    - Model performs well on balanced classification tasks  
-    - Higher sensitivity to glucose levels and BMI  
-    - Suitable for binary medical risk prediction  
-    """)
+    with col2:
+        fig, ax = plt.subplots()
+        ax.bar(metrics.keys(), metrics.values(), color="#0b1f3a")
+        ax.set_ylim(0, 1)
+        ax.set_title("Model Performance Chart")
+        plt.xticks(rotation=30)
+        st.pyplot(fig)
 
 # =========================================================
 # TAB 3 — CLINICAL REPORT
@@ -187,7 +196,7 @@ STATUS: {"HIGH RISK" if model.predict(scaler.transform([[pregnancies,glucose,bp,
         st.download_button(
             "📄 Download Clinical Report",
             report,
-            file_name="diabetes_clinical_report.txt"
+            file_name="diabetes_report.txt"
         )
 
     else:

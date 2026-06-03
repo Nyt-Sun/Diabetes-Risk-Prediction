@@ -14,24 +14,19 @@ st.set_page_config(
 )
 
 # =============================
-# CUSTOM STYLE (WHITE HOSPITAL UI + BLUR SIDEBAR)
+# CUSTOM STYLE (HOSPITAL UI + BIG BUTTON FIX)
 # =============================
 st.markdown("""
 <style>
 
-/* MAIN BACKGROUND (PURE WHITE) */
+/* MAIN BACKGROUND */
 .stApp {
-    background: #ffffff;
+    background: #f5f0e6;
 }
 
-/* =============================
-   BLUR GLASS SIDEBAR
-============================= */
+/* SIDEBAR WIDTH */
 section[data-testid="stSidebar"] {
-    background: rgba(255, 255, 255, 0.6) !important;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border-right: 1px solid rgba(0,0,0,0.05);
+    background-color: #e3d7c3 !important;
     min-width: 430px !important;
 }
 
@@ -40,7 +35,7 @@ section[data-testid="stSidebar"] * {
     color: #1f1f1f;
 }
 
-/* SIDEBAR TITLE */
+/* NAVY SIDEBAR TITLE */
 .sidebar-title {
     color: #0b1f3a;
     font-size: 22px;
@@ -49,9 +44,7 @@ section[data-testid="stSidebar"] * {
     margin-bottom: 18px;
 }
 
-/* =============================
-   HEADER (WHITE UI STYLE)
-============================= */
+/* HEADER */
 .header {
     background-color: #0b1f3a;
     padding: 25px;
@@ -59,28 +52,30 @@ section[data-testid="stSidebar"] * {
     text-align: center;
 }
 
+/* TITLE */
 .title {
     color: white;
     font-size: 60px;
     font-weight: 900;
 }
 
+/* SUBTITLE */
 .subtitle {
     color: #d6d6d6;
     font-size: 14px;
 }
 
-/* =============================
-   MAIN CONTENT CARD FEEL
-============================= */
+/* MAIN CONTAINER */
 .block-container {
-    background-color: #ffffff;
+    background-color: #f8f3ea;
     padding: 2rem;
+    border-radius: 10px;
 }
 
 /* =============================
-   RUN ANALYSIS BUTTON
+   BIG CENTERED RUN BUTTON
 ============================= */
+
 div.stButton {
     display: flex;
     justify-content: center;
@@ -96,6 +91,7 @@ div.stButton > button {
     width: 85%;
     border-radius: 12px;
     margin-top: 25px;
+    margin-bottom: 10px;
 }
 
 /* BUTTON HOVER */
@@ -144,8 +140,9 @@ with col2:
     dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 
 # =============================
-# RUN ANALYSIS
+# RUN ANALYSIS (BOTTOM CENTER STYLE)
 # =============================
+st.sidebar.markdown("<br><br>", unsafe_allow_html=True)
 predict = st.sidebar.button("🔍 RUN ANALYSIS")
 
 # =============================

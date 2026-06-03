@@ -26,20 +26,13 @@ st.set_page_config(
 # =========================
 
 st.title("🩺 Diabetes Risk Prediction System")
-
-st.markdown(
-    "Predict diabetes risk using Machine Learning (Pima Indians Dataset)"
-)
+st.markdown("Machine Learning-based diabetes risk prediction using the Pima Indians dataset.")
 
 # =========================
 # TABS
 # =========================
 
-tab1, tab2, tab3 = st.tabs([
-    "🔮 Prediction",
-    "📊 Model Insights",
-    "📂 Dataset"
-])
+tab1, tab2, tab3 = st.tabs(["🔮 Prediction", "📊 Model Insights", "📂 Dataset"])
 
 # =========================
 # SIDEBAR INPUTS
@@ -56,8 +49,16 @@ bmi = st.sidebar.number_input("BMI", 0.0, 70.0, 25.0)
 dpf = st.sidebar.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 age = st.sidebar.number_input("Age", 1, 120, 30)
 
-input_data = np.array([[pregnancies, glucose, blood_pressure,
-                        skin_thickness, insulin, bmi, dpf, age]])
+input_data = np.array([[
+    pregnancies,
+    glucose,
+    blood_pressure,
+    skin_thickness,
+    insulin,
+    bmi,
+    dpf,
+    age
+]])
 
 input_scaled = scaler.transform(input_data)
 
@@ -72,16 +73,21 @@ with tab1:
     if st.button("Predict Diabetes Risk"):
 
         prediction = model.predict(input_scaled)
-        probability = model.predict_proba(input_scaled)[0][1]
+
+        # Safe probability handling
+        if hasattr(model, "predict_proba"):
+            probability = model.predict_proba(input_scaled)[0][1]
+        else:
+            probability = None
 
         if prediction[0] == 1:
             st.error("⚠️ High Risk of Diabetes")
         else:
             st.success("✅ Low Risk of Diabetes")
 
-        st.metric("Risk Probability", f"{probability:.2%}")
-
-        st.progress(float(probability))
+        if probability is not None:
+            st.metric("Risk Probability", f"{probability:.2%}")
+            st.progress(float(probability))
 
 # =========================
 # TAB 2 - MODEL INSIGHTS
@@ -89,23 +95,29 @@ with tab1:
 
 with tab2:
 
-    st.subheader("Feature Importance")
+    st.subheader("Model Insights")
 
-    features = [
-        "Pregnancies", "Glucose", "BloodPressure", "SkinThickness",
-        "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"
-    ]
+    # Feature importance (SAFE CHECK)
+    if hasattr(model, "feature_importances_"):
 
-    importance_df = pd.DataFrame({
-        "Feature": features,
-        "Importance": model.feature_importances_
-    }).sort_values(by="Importance", ascending=True)
+        features = [
+            "Pregnancies", "Glucose", "BloodPressure", "SkinThickness",
+            "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"
+        ]
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.barh(importance_df["Feature"], importance_df["Importance"])
-    ax.set_title("Feature Importance")
+        importance_df = pd.DataFrame({
+            "Feature": features,
+            "Importance": model.feature_importances_
+        }).sort_values(by="Importance", ascending=True)
 
-    st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.barh(importance_df["Feature"], importance_df["Importance"])
+        ax.set_title("Feature Importance")
+
+        st.pyplot(fig)
+
+    else:
+        st.info("Feature importance is not available for this model.")
 
 # =========================
 # TAB 3 - DATASET
@@ -126,5 +138,4 @@ with tab3:
 # =========================
 
 st.markdown("---")
-
 st.caption("AI/ML Capstone Project • Diabetes Risk Prediction")

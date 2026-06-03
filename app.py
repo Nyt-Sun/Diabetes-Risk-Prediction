@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # =============================
-# CUSTOM STYLE (BEIGE CLINICAL THEME)
+# THEME (BEIGE HOSPITAL UI)
 # =============================
 st.markdown("""
 <style>
@@ -32,14 +32,12 @@ st.markdown("""
     text-align: center;
 }
 
-/* TITLE */
 .title {
     color: white;
     font-size: 48px;
     font-weight: 900;
 }
 
-/* SUBTITLE */
 .subtitle {
     color: #d6d6d6;
     font-size: 14px;
@@ -50,27 +48,26 @@ section[data-testid="stSidebar"] {
     background-color: #e3d7c3 !important;
 }
 
-/* SIDEBAR TEXT */
 section[data-testid="stSidebar"] * {
     color: #1f1f1f;
 }
 
-/* MAIN CONTAINER */
-.block-container {
-    background-color: #f8f3ea;
-    padding: 2rem;
+/* CENTER BUTTON STYLE (WHITE, BOLD, CLINICAL) */
+div.stButton > button {
+    background-color: white;
+    color: #0b1f3a;
+    font-size: 18px;
+    font-weight: 900;
+    padding: 0.7rem 2rem;
     border-radius: 10px;
+    border: 2px solid #0b1f3a;
+    display: block;
+    margin: 0 auto;
 }
 
-/* BUTTON */
-.stButton>button {
-    background-color: #0b1f3a;
-    color: white;
-    border-radius: 8px;
-}
-
-.stButton>button:hover {
-    background-color: #163a63;
+div.stButton > button:hover {
+    background-color: #f2f2f2;
+    transform: scale(1.03);
 }
 
 </style>
@@ -113,7 +110,14 @@ with col2:
     bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
     dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 
-predict = st.sidebar.button("🔍 Run Analysis")
+# =============================
+# CENTERED RUN ANALYSIS BUTTON
+# =============================
+st.markdown("### ")
+colA, colB, colC = st.columns([1,2,1])
+
+with colB:
+    predict = st.button("🔍 RUN ANALYSIS")
 
 # =============================
 # TABS
@@ -125,7 +129,7 @@ tab1, tab2, tab3 = st.tabs([
 ])
 
 # =============================
-# TAB 1 - DIAGNOSIS
+# TAB 1
 # =============================
 with tab1:
 
@@ -139,12 +143,12 @@ with tab1:
         prediction = model.predict(scaled)[0]
         prob = model.predict_proba(scaled)[0][1] * 100
 
-        colA, colB = st.columns(2)
+        col1, col2 = st.columns(2)
 
-        with colA:
+        with col1:
             st.metric("Risk Probability", f"{prob:.2f}%")
 
-        with colB:
+        with col2:
             if prediction == 1:
                 st.error("🚨 HIGH RISK")
             else:
@@ -152,25 +156,18 @@ with tab1:
 
         st.write("---")
 
-        st.subheader("🧠 Key Medical Indicators")
-
         df = pd.DataFrame({
-            "Feature": [
-                "Pregnancies", "Glucose", "Blood Pressure",
-                "Skin Thickness", "Insulin", "BMI", "DPF", "Age"
-            ],
-            "Value": [
-                pregnancies, glucose, bp, skin, insulin, bmi, dpf, age
-            ]
+            "Feature": ["Pregnancies","Glucose","BP","Skin","Insulin","BMI","DPF","Age"],
+            "Value": [pregnancies,glucose,bp,skin,insulin,bmi,dpf,age]
         })
 
         st.bar_chart(df.set_index("Feature"))
 
     else:
-        st.info("Enter patient data in the sidebar and click **Run Analysis**.")
+        st.info("Click RUN ANALYSIS to generate results.")
 
 # =============================
-# TAB 2 - MODEL PERFORMANCE
+# TAB 2
 # =============================
 with tab2:
 
@@ -193,12 +190,11 @@ with tab2:
         fig, ax = plt.subplots()
         ax.bar(metrics.keys(), metrics.values(), color="#0b1f3a")
         ax.set_ylim(0, 1)
-        ax.set_title("Model Performance")
         plt.xticks(rotation=25)
         st.pyplot(fig)
 
 # =============================
-# TAB 3 - CLINICAL REPORT
+# TAB 3
 # =============================
 with tab3:
 
@@ -217,7 +213,7 @@ Blood Pressure: {bp}
 Skin Thickness: {skin}
 Insulin: {insulin}
 BMI: {bmi}
-Diabetes Pedigree Function: {dpf}
+DPF: {dpf}
 Age: {age}
 
 FINAL STATUS: {status}
@@ -230,4 +226,4 @@ FINAL STATUS: {status}
         )
 
     else:
-        st.info("Run analysis to generate clinical report.")
+        st.info("Run analysis first to generate report.")

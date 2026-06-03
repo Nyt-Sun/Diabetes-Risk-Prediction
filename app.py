@@ -2,36 +2,64 @@ import streamlit as st
 import pickle
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # -----------------------------
 # PAGE CONFIG
 # -----------------------------
 st.set_page_config(
-    page_title="Hospital AI - Diabetes Risk System",
-    page_icon="🏥",
-    layout="wide"
+    page_title="Diabetes Risk Predictor",
+    layout="wide",
+    page_icon="🏥"
 )
 
 # -----------------------------
-# STYLE (Hospital UI Theme)
+# CUSTOM HEADER (NAVY + WHITE TITLE)
 # -----------------------------
 st.markdown("""
 <style>
-.stApp {
-    background: linear-gradient(to right, #eef2f7, #dbe9f4);
+.header {
+    background-color: #0b1f3a;
+    padding: 25px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.block-container {
-    padding-top: 2rem;
+.title {
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
 }
 
-h1 {
-    color: #0b3d91;
-    text-align: center;
+.sub {
+    color: #cfd8e3;
+    font-size: 14px;
+}
+
+img {
+    border-radius: 12px;
 }
 </style>
 """, unsafe_allow_html=True)
+
+colA, colB = st.columns([2, 1])
+
+with colA:
+    st.markdown("""
+    <div class="header">
+        <div>
+            <div class="title">Diabetes Risk Predictor</div>
+            <div class="sub">AI-powered Clinical Decision Support System</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with colB:
+    st.image("https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
+             use_container_width=True)
+
+st.write("---")
 
 # -----------------------------
 # LOAD MODEL
@@ -40,17 +68,9 @@ model = pickle.load(open("model/model.pkl", "rb"))
 scaler = pickle.load(open("model/scaler.pkl", "rb"))
 
 # -----------------------------
-# HEADER
+# SIDEBAR INPUT (CLEAN)
 # -----------------------------
-st.title("🏥 Hospital AI Diabetes Risk System")
-st.caption("Clinical Decision Support | AI-powered risk stratification engine")
-
-st.write("---")
-
-# -----------------------------
-# SIDEBAR INPUT (CLINICAL INTAKE)
-# -----------------------------
-st.sidebar.header("🧾 Patient Intake Form")
+st.sidebar.header("🧾 Patient Data Input")
 
 pregnancies = st.sidebar.number_input("Pregnancies", 0, 20, 1)
 glucose = st.sidebar.number_input("Glucose", 0, 200, 120)
@@ -61,125 +81,114 @@ bmi = st.sidebar.number_input("BMI", 0.0, 70.0, 25.0)
 dpf = st.sidebar.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 age = st.sidebar.number_input("Age", 1, 100, 30)
 
-predict = st.sidebar.button("🔍 Run Clinical Analysis")
+predict = st.sidebar.button("🔍 Run Analysis")
 
 # -----------------------------
-# MAIN LAYOUT
+# TABS (FOLDERS)
 # -----------------------------
-col1, col2 = st.columns([1.2, 1])
+tab1, tab2, tab3 = st.tabs([
+    "📊 Patient Diagnosis",
+    "📈 Model Performance",
+    "🧾 Clinical Report"
+])
 
-if predict:
+# =========================================================
+# TAB 1 — PATIENT DIAGNOSIS
+# =========================================================
+with tab1:
 
-    # -------------------------
-    # PREDICTION
-    # -------------------------
-    input_data = np.array([[pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]])
-    input_scaled = scaler.transform(input_data)
+    st.subheader("Patient Risk Assessment")
 
-    pred = model.predict(input_scaled)[0]
-    prob = model.predict_proba(input_scaled)[0][1]
+    if predict:
 
-    risk_percent = prob * 100
+        features = np.array([[pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]])
+        scaled = scaler.transform(features)
 
-    # -------------------------
-    # LEFT PANEL (RESULTS)
-    # -------------------------
-    with col1:
+        pred = model.predict(scaled)[0]
+        prob = model.predict_proba(scaled)[0][1] * 100
 
-        st.subheader("📊 Patient Risk Dashboard")
+        col1, col2 = st.columns(2)
 
-        st.metric("🧪 Diabetes Risk Score", f"{risk_percent:.2f}%")
+        with col1:
+            st.metric("Risk Probability", f"{prob:.2f}%")
 
-        # Risk classification
-        if pred == 1:
-            st.error("🚨 HIGH RISK PATIENT")
-            status = "HIGH RISK"
-        else:
-            st.success("✅ LOW RISK PATIENT")
-            status = "LOW RISK"
-
-        # -------------------------
-        # GAUGE STYLE (SIMULATED)
-        # -------------------------
-        fig, ax = plt.subplots(figsize=(4, 2))
-        ax.barh(["Risk"], [risk_percent], color="red" if pred == 1 else "green")
-        ax.set_xlim(0, 100)
-        ax.set_title("Risk Level Gauge")
-        st.pyplot(fig)
-
-        # -------------------------
-        # CLINICAL INTERPRETATION
-        # -------------------------
-        st.subheader("🧠 Clinical Interpretation")
-
-        if pred == 1:
-            st.warning("""
-            - Elevated glucose and metabolic markers detected  
-            - Patient shows diabetes risk indicators  
-            - Recommend clinical confirmation tests (HbA1c, fasting glucose)  
-            """)
-        else:
-            st.info("""
-            - No strong diabetic indicators detected  
-            - Routine monitoring recommended  
-            - Maintain healthy lifestyle and periodic screening  
-            """)
-
-    # -------------------------
-    # RIGHT PANEL (ADVANCED INSIGHTS)
-    # -------------------------
-    with col2:
-
-        st.subheader("📈 Model Confidence")
-
-        st.write(f"Probability (Diabetic): **{prob*100:.2f}%**")
-        st.write(f"Probability (Non-Diabetic): **{(1-prob)*100:.2f}%**")
-
-        st.progress(float(prob))
+        with col2:
+            if pred == 1:
+                st.error("🚨 HIGH RISK")
+            else:
+                st.success("✅ LOW RISK")
 
         st.write("---")
 
-        # -------------------------
-        # FEATURE SNAPSHOT
-        # -------------------------
-        st.subheader("🧬 Patient Biomarker Profile")
+        st.subheader("🧠 Key Medical Indicators")
 
-        features_df = pd.DataFrame({
+        df = pd.DataFrame({
             "Feature": [
                 "Pregnancies", "Glucose", "Blood Pressure",
-                "Skin Thickness", "Insulin", "BMI",
-                "DPF", "Age"
+                "Skin Thickness", "Insulin", "BMI", "DPF", "Age"
             ],
             "Value": [
-                pregnancies, glucose, bp, skin,
-                insulin, bmi, dpf, age
+                pregnancies, glucose, bp, skin, insulin, bmi, dpf, age
             ]
         })
 
-        st.bar_chart(features_df.set_index("Feature"))
+        st.bar_chart(df.set_index("Feature"))
 
-        # -------------------------
-        # REPORT DOWNLOAD
-        # -------------------------
+    else:
+        st.info("Enter patient data and click **Run Analysis**.")
+
+# =========================================================
+# TAB 2 — MODEL PERFORMANCE
+# =========================================================
+with tab2:
+
+    st.subheader("Model Evaluation Dashboard")
+
+    st.write("Random Forest Classifier trained on Pima Indians Diabetes Dataset")
+
+    st.metric("Accuracy", "≈ 77%")
+    st.metric("Model Type", "Random Forest")
+    st.metric("Dataset", "Pima Indians Diabetes")
+
+    st.write("---")
+
+    st.subheader("Performance Insight")
+
+    st.write("""
+    - Model performs well on balanced classification tasks  
+    - Higher sensitivity to glucose levels and BMI  
+    - Suitable for binary medical risk prediction  
+    """)
+
+# =========================================================
+# TAB 3 — CLINICAL REPORT
+# =========================================================
+with tab3:
+
+    st.subheader("Clinical Report Generator")
+
+    if predict:
+
         report = f"""
-        HOSPITAL AI DIABETES REPORT
+DIABETES RISK CLINICAL REPORT
+--------------------------------
+Pregnancies: {pregnancies}
+Glucose: {glucose}
+Blood Pressure: {bp}
+Skin Thickness: {skin}
+Insulin: {insulin}
+BMI: {bmi}
+DPF: {dpf}
+Age: {age}
 
-        Risk Status: {status}
-        Risk Score: {risk_percent:.2f}%
-
-        Patient Data:
-        - Pregnancies: {pregnancies}
-        - Glucose: {glucose}
-        - Blood Pressure: {bp}
-        - BMI: {bmi}
-        - Age: {age}
+STATUS: {"HIGH RISK" if model.predict(scaler.transform([[pregnancies,glucose,bp,skin,insulin,bmi,dpf,age]]))[0] == 1 else "LOW RISK"}
         """
 
         st.download_button(
-            "📄 Download Patient Report",
+            "📄 Download Clinical Report",
             report,
-            file_name="diabetes_report.txt"
+            file_name="diabetes_clinical_report.txt"
         )
 
-else:
-    st.info("Enter patient details in the sidebar and click **Run Clinical Analysis** to generate hospital report.")
+    else:
+        st.info("Run analysis first to generate report.")

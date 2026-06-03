@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # =============================
-# CUSTOM STYLE (BEIGE CLINICAL THEME + SIDEBAR UPGRADE)
+# CUSTOM STYLE (HOSPITAL UI + BIG BUTTON FIX)
 # =============================
 st.markdown("""
 <style>
@@ -24,10 +24,10 @@ st.markdown("""
     background: #f5f0e6;
 }
 
-/* WIDER SIDEBAR */
+/* SIDEBAR WIDTH */
 section[data-testid="stSidebar"] {
     background-color: #e3d7c3 !important;
-    min-width: 420px !important;
+    min-width: 430px !important;
 }
 
 /* SIDEBAR TEXT */
@@ -35,13 +35,13 @@ section[data-testid="stSidebar"] * {
     color: #1f1f1f;
 }
 
-/* NAVY HEADING (PATIENT CLINICAL DATA) */
+/* NAVY SIDEBAR TITLE */
 .sidebar-title {
     color: #0b1f3a;
     font-size: 22px;
     font-weight: 900;
     text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 }
 
 /* HEADER */
@@ -72,17 +72,29 @@ section[data-testid="stSidebar"] * {
     border-radius: 10px;
 }
 
-/* RUN BUTTON (CENTERED + WHITE + BOLD) */
+/* =============================
+   BIG CENTERED RUN BUTTON
+============================= */
+
+div.stButton {
+    display: flex;
+    justify-content: center;
+}
+
+/* BUTTON STYLE */
 div.stButton > button {
     background-color: #0b1f3a;
     color: white !important;
+    font-size: 18px;
     font-weight: 900;
-    font-size: 16px;
-    border-radius: 10px;
-    width: 100%;
-    padding: 12px;
+    height: 55px;
+    width: 85%;
+    border-radius: 12px;
+    margin-top: 25px;
+    margin-bottom: 10px;
 }
 
+/* BUTTON HOVER */
 div.stButton > button:hover {
     background-color: #163a63;
 }
@@ -111,7 +123,6 @@ scaler = pickle.load(open("model/scaler.pkl", "rb"))
 # =============================
 # SIDEBAR INPUT
 # =============================
-
 st.sidebar.markdown('<div class="sidebar-title">🧾 Patient Clinical Data</div>', unsafe_allow_html=True)
 
 col1, col2 = st.sidebar.columns(2)
@@ -129,13 +140,13 @@ with col2:
     dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 
 # =============================
-# RUN ANALYSIS BUTTON (BOTTOM CENTER STYLE)
+# RUN ANALYSIS (BOTTOM CENTER STYLE)
 # =============================
-st.sidebar.markdown("---")
+st.sidebar.markdown("<br><br>", unsafe_allow_html=True)
 predict = st.sidebar.button("🔍 RUN ANALYSIS")
 
 # =============================
-# PREDICTION LOGIC
+# MODEL LOGIC
 # =============================
 if predict:
 

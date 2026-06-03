@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # =============================
-# CUSTOM STYLE (BEIGE CLINICAL THEME)
+# CUSTOM STYLE (BEIGE CLINICAL THEME + SIDEBAR UPGRADE)
 # =============================
 st.markdown("""
 <style>
@@ -33,6 +33,15 @@ section[data-testid="stSidebar"] {
 /* SIDEBAR TEXT */
 section[data-testid="stSidebar"] * {
     color: #1f1f1f;
+}
+
+/* NAVY HEADING (PATIENT CLINICAL DATA) */
+.sidebar-title {
+    color: #0b1f3a;
+    font-size: 22px;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 15px;
 }
 
 /* HEADER */
@@ -63,15 +72,18 @@ section[data-testid="stSidebar"] * {
     border-radius: 10px;
 }
 
-/* BUTTON */
-.stButton>button {
+/* RUN BUTTON (CENTERED + WHITE + BOLD) */
+div.stButton > button {
     background-color: #0b1f3a;
-    color: white;
+    color: white !important;
+    font-weight: 900;
+    font-size: 16px;
     border-radius: 10px;
-    font-weight: 700;
+    width: 100%;
+    padding: 12px;
 }
 
-.stButton>button:hover {
+div.stButton > button:hover {
     background-color: #163a63;
 }
 
@@ -97,9 +109,10 @@ model = pickle.load(open("model/model.pkl", "rb"))
 scaler = pickle.load(open("model/scaler.pkl", "rb"))
 
 # =============================
-# SIDEBAR INPUT (FIXED + WIDER SPACE)
+# SIDEBAR INPUT
 # =============================
-st.sidebar.header("🧾 Patient Clinical Data")
+
+st.sidebar.markdown('<div class="sidebar-title">🧾 Patient Clinical Data</div>', unsafe_allow_html=True)
 
 col1, col2 = st.sidebar.columns(2)
 
@@ -116,8 +129,9 @@ with col2:
     dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 
 # =============================
-# RUN BUTTON
+# RUN ANALYSIS BUTTON (BOTTOM CENTER STYLE)
 # =============================
+st.sidebar.markdown("---")
 predict = st.sidebar.button("🔍 RUN ANALYSIS")
 
 # =============================

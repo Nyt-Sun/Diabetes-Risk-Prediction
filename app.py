@@ -24,6 +24,17 @@ st.markdown("""
     background: #f5f0e6;
 }
 
+/* WIDER SIDEBAR */
+section[data-testid="stSidebar"] {
+    background-color: #e3d7c3 !important;
+    min-width: 420px !important;
+}
+
+/* SIDEBAR TEXT */
+section[data-testid="stSidebar"] * {
+    color: #1f1f1f;
+}
+
 /* HEADER */
 .header {
     background-color: #0b1f3a;
@@ -43,16 +54,6 @@ st.markdown("""
 .subtitle {
     color: #d6d6d6;
     font-size: 14px;
-}
-
-/* SIDEBAR */
-section[data-testid="stSidebar"] {
-    background-color: #e3d7c3 !important;
-}
-
-/* SIDEBAR TEXT */
-section[data-testid="stSidebar"] * {
-    color: #1f1f1f;
 }
 
 /* MAIN CONTAINER */
@@ -96,7 +97,7 @@ model = pickle.load(open("model/model.pkl", "rb"))
 scaler = pickle.load(open("model/scaler.pkl", "rb"))
 
 # =============================
-# SIDEBAR INPUT (FIXED ALIGNMENT)
+# SIDEBAR INPUT (FIXED + WIDER SPACE)
 # =============================
 st.sidebar.header("🧾 Patient Clinical Data")
 

@@ -140,9 +140,8 @@ with col2:
     dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 
 # =============================
-# RUN ANALYSIS (BOTTOM CENTER STYLE)
+# RUN ANALYSIS BUTTON
 # =============================
-st.sidebar.markdown("<br><br>", unsafe_allow_html=True)
 predict = st.sidebar.button("🔍 RUN ANALYSIS")
 
 # =============================
@@ -210,7 +209,7 @@ with tab1:
         st.info("Enter patient data and click RUN ANALYSIS.")
 
 # =============================
-# TAB 2
+# TAB 2 (UPDATED SIDE-BY-SIDE)
 # =============================
 with tab2:
 
@@ -223,19 +222,27 @@ with tab2:
         "F1 Score": 0.74
     }
 
-    c1, c2, c3, c4 = st.columns(4)
+    colA, colB = st.columns(2)
 
-    c1.metric("Accuracy", "77%")
-    c2.metric("Precision", "75%")
-    c3.metric("Recall", "73%")
-    c4.metric("F1 Score", "74%")
+    # LEFT: SCORES
+    with colA:
+        st.markdown("### 📊 Model Scores")
+        st.metric("Accuracy", "77%")
+        st.metric("Precision", "75%")
+        st.metric("Recall", "73%")
+        st.metric("F1 Score", "74%")
 
-    fig, ax = plt.subplots()
-    ax.bar(metrics.keys(), metrics.values(), color="#0b1f3a")
-    ax.set_ylim(0, 1)
-    ax.set_title("Model Performance Metrics")
+    # RIGHT: GRAPH
+    with colB:
+        st.markdown("### 📈 Performance Map")
 
-    st.pyplot(fig)
+        fig, ax = plt.subplots()
+        ax.bar(metrics.keys(), metrics.values(), color="#0b1f3a")
+        ax.set_ylim(0, 1)
+        ax.set_title("Model Performance Comparison")
+        ax.tick_params(axis='x', rotation=20)
+
+        st.pyplot(fig)
 
 # =============================
 # TAB 3

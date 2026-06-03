@@ -1,14 +1,15 @@
 import streamlit as st
 import pickle
 import numpy as np
+import pandas as pd
 
 # -----------------------------
-# Page Configuration
+# Page Config
 # -----------------------------
 st.set_page_config(
-    page_title="Diabetes Risk Clinical Dashboard",
-    page_icon="🏥",
-    layout="wide"
+    page_title="AI Clinical Decision Support System",
+    layout="wide",
+    page_icon="🏥"
 )
 
 # -----------------------------
@@ -18,105 +19,111 @@ model = pickle.load(open("model/model.pkl", "rb"))
 scaler = pickle.load(open("model/scaler.pkl", "rb"))
 
 # -----------------------------
-# Header (Clinical Style)
+# HEADER
 # -----------------------------
-st.markdown(
-    """
-    <div style="background-color:#0b3d91;padding:20px;border-radius:10px">
-        <h1 style="color:white;text-align:center;">
-            🏥 Diabetes Risk Clinical Decision Support System
-        </h1>
-        <p style="color:white;text-align:center;">
-            AI-powered patient risk assessment tool for clinical screening
-        </p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-st.write("")
-
-# -----------------------------
-# Layout Columns (Clinical Form Style)
-# -----------------------------
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("📋 Patient Clinical Data")
-
-    pregnancies = st.number_input("Pregnancies", 0, 20, 1)
-    glucose = st.number_input("Plasma Glucose Level (mg/dL)", 0, 200, 120)
-    blood_pressure = st.number_input("Diastolic Blood Pressure (mmHg)", 0, 150, 70)
-    skin_thickness = st.number_input("Skin Thickness (mm)", 0, 100, 20)
-
-with col2:
-    st.subheader("🧪 Metabolic Indicators")
-
-    insulin = st.number_input("2-Hour Serum Insulin (mu U/ml)", 0, 900, 80)
-    bmi = st.number_input("Body Mass Index (BMI)", 0.0, 70.0, 25.0)
-    dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
-    age = st.number_input("Age (years)", 1, 100, 30)
+st.title("🏥 AI Clinical Decision Support System")
+st.write("AI-powered diabetes risk screening and clinical decision support tool.")
 
 st.write("---")
 
 # -----------------------------
-# Prediction Button
+# LAYOUT
 # -----------------------------
-if st.button("🔍 Run Clinical Risk Assessment"):
+col1, col2 = st.columns([1, 1])
 
-    input_data = np.array([[
-        pregnancies,
-        glucose,
-        blood_pressure,
-        skin_thickness,
-        insulin,
-        bmi,
-        dpf,
-        age
-    ]])
+# -----------------------------
+# PATIENT INPUT SECTION
+# -----------------------------
+with col1:
+    st.subheader("🧾 Patient Clinical Data")
 
-    # Scale input
-    input_scaled = scaler.transform(input_data)
+    pregnancies = st.number_input("Pregnancies", 0.0, 20.0, 1.0)
+    glucose = st.number_input("Glucose", 0.0, 200.0, 120.0)
+    blood_pressure = st.number_input("BloodPressure", 0.0, 150.0, 70.0)
+    skin_thickness = st.number_input("SkinThickness", 0.0, 100.0, 20.0)
+    insulin = st.number_input("Insulin", 0.0, 900.0, 80.0)
+    bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
+    dpf = st.number_input("DiabetesPedigreeFunction", 0.0, 2.5, 0.5)
+    age = st.number_input("Age", 1.0, 100.0, 30.0)
 
-    # Prediction
-    prediction = model.predict(input_scaled)
-    prob = model.predict_proba(input_scaled)
+    predict_btn = st.button("🔍 Generate Clinical Report")
 
-    risk_score = prob[0][1] * 100
+# -----------------------------
+# RIGHT PANEL (RESULTS)
+# -----------------------------
+with col2:
+    st.subheader("📊 Model Performance")
+    st.info("Random Forest Classifier trained on Pima Indians Diabetes Dataset")
+    st.write("Accuracy: ~77% (example placeholder)")
 
-    # -----------------------------
-    # Clinical Result Panel
-    # -----------------------------
-    st.subheader("🧾 Clinical Assessment Result")
+    st.subheader("🧠 Clinical Report")
 
-    if prediction[0] == 1:
+    if predict_btn:
 
-        st.markdown(
-            f"""
-            <div style="background-color:#ffcccc;padding:20px;border-radius:10px">
-                <h2 style="color:#b30000;">⚠ High Diabetes Risk Detected</h2>
-                <h3>Risk Probability: {risk_score:.2f}%</h3>
-                <p>Recommendation: Immediate clinical follow-up advised.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        # input array
+        features = np.array([[
+            pregnancies,
+            glucose,
+            blood_pressure,
+            skin_thickness,
+            insulin,
+            bmi,
+            dpf,
+            age
+        ]])
+
+        # scale
+        features_scaled = scaler.transform(features)
+
+        # prediction
+        prediction = model.predict(features_scaled)
+        prob = model.predict_proba(features_scaled)[0][1] * 100
+
+        st.write("### Patient Risk Assessment")
+
+        st.metric(label="Risk Probability", value=f"{prob:.2f}%")
+
+        # -----------------------------
+        # Risk Status
+        # -----------------------------
+        if prediction[0] == 1:
+            st.error("🚨 HIGH RISK")
+            st.markdown("**Clinical Confidence:** High probability of diabetes detected.")
+        else:
+            st.success("✅ LOW RISK")
+            st.markdown("**Clinical Confidence:** No immediate concern detected.")
+
+        st.write("---")
+
+        # -----------------------------
+        # SIMPLE FEATURE IMPORTANCE VISUAL (STATIC STYLE)
+        # -----------------------------
+        st.write("🧠 Key Medical Indicators (Input Snapshot)")
+
+        features_df = pd.DataFrame({
+            "Feature": [
+                "Pregnancies",
+                "Glucose",
+                "BloodPressure",
+                "SkinThickness",
+                "Insulin",
+                "BMI",
+                "DiabetesPedigree",
+                "Age"
+            ],
+            "Value": [
+                pregnancies,
+                glucose,
+                blood_pressure,
+                skin_thickness,
+                insulin,
+                bmi,
+                dpf,
+                age
+            ]
+        })
+
+        st.bar_chart(features_df.set_index("Feature"))
 
     else:
-
-        st.markdown(
-            f"""
-            <div style="background-color:#ccffcc;padding:20px;border-radius:10px">
-                <h2 style="color:#006600;">✅ Low Diabetes Risk</h2>
-                <h3>Risk Probability: {100 - risk_score:.2f}%</h3>
-                <p>Recommendation: Routine monitoring suggested.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-# -----------------------------
-# Footer (Clinical Note)
-# -----------------------------
-st.write("---")
-st.caption("Clinical Decision Support System | AI/ML Capstone Project | Not for real medical diagnosis")
+        st.info("Enter patient data and click **Generate Clinical Report**")

@@ -2,10 +2,14 @@ import streamlit as st
 import pickle
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # =============================
-# PAGE CONFIG
+# LOAD PIPELINE
+# =============================
+pipeline = pickle.load(open("model/pipeline.pkl", "rb"))
+
+# =============================
+# UI CONFIG
 # =============================
 st.set_page_config(
     page_title="Diabetes Risk Predictor",
@@ -13,113 +17,12 @@ st.set_page_config(
     page_icon="⚕️"
 )
 
-# =============================
-# CUSTOM CSS (ONLY COLOR CHANGED)
-# =============================
-st.markdown("""
-<style>
-
-/* MAIN BACKGROUND (BEIGE) */
-.stApp {
-    background: #f5f0e6;
-}
-
-/* SIDEBAR (DARKER BEIGE) */
-section[data-testid="stSidebar"] {
-    background: #e3d7c3 !important;
-    min-width: 430px !important;
-}
-
-/* SIDEBAR TEXT */
-section[data-testid="stSidebar"] * {
-    color: #1f1f1f;
-}
-
-/* SIDEBAR TITLE */
-.sidebar-title {
-    color: #0b1f3a;
-    font-size: 22px;
-    font-weight: 900;
-    text-align: center;
-    margin-bottom: 18px;
-}
-
-/* HEADER */
-.header {
-    background-color: #0b1f3a;
-    padding: 25px;
-    border-radius: 18px;
-    text-align: center;
-}
-
-/* TITLE */
-.title {
-    color: white;
-    font-size: 60px;
-    font-weight: 900;
-}
-
-/* SUBTITLE */
-.subtitle {
-    color: #d6d6d6;
-    font-size: 14px;
-}
-
-/* MAIN CONTAINER */
-.block-container {
-    background-color: #f5f0e6;
-    padding: 2rem;
-}
-
-/* RUN BUTTON (UNCHANGED) */
-.run-btn-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 25px;
-}
-
-.run-btn-container button {
-    background-color: #d60000 !important;
-    color: white !important;
-    font-size: 18px !important;
-    font-weight: 900 !important;
-    width: 100% !important;
-    height: 55px !important;
-    border-radius: 12px !important;
-    border: none !important;
-}
-
-.run-btn-container button:hover {
-    background-color: #a80000 !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
+st.title("⚕️ Diabetes Risk Predictor (ML Pipeline)")
 
 # =============================
-# HEADER
+# INPUTS
 # =============================
-st.markdown("""
-<div class="header">
-    <div class="title">⚕️ Diabetes Risk Predictor</div>
-    <div class="subtitle">AI Clinical Decision Support System</div>
-</div>
-""", unsafe_allow_html=True)
-
-st.write("---")
-
-# =============================
-# LOAD MODEL
-# =============================
-model = pickle.load(open("model/model.pkl", "rb"))
-scaler = pickle.load(open("model/scaler.pkl", "rb"))
-
-# =============================
-# SIDEBAR INPUT
-# =============================
-st.sidebar.markdown('<div class="sidebar-title">🧾 Patient Clinical Data</div>', unsafe_allow_html=True)
-
-col1, col2 = st.sidebar.columns(2)
+col1, col2 = st.columns(2)
 
 with col1:
     pregnancies = st.number_input("Pregnancies", 0, 20, 1)
@@ -134,135 +37,28 @@ with col2:
     dpf = st.number_input("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
 
 # =============================
-# RUN ANALYSIS
+# PREDICTION
 # =============================
-st.sidebar.markdown('<div class="run-btn-container">', unsafe_allow_html=True)
-predict = st.sidebar.button("🔍 RUN ANALYSIS")
-st.sidebar.markdown('</div>', unsafe_allow_html=True)
+if st.button("🔍 RUN ANALYSIS"):
 
-# =============================
-# MODEL LOGIC
-# =============================
-if predict:
-
-    features = np.array([[
+    input_data = pd.DataFrame([[
         pregnancies, glucose, bp, skin,
         insulin, bmi, dpf, age
-    ]])
+    ]], columns=[
+        "Pregnancies",
+        "Glucose",
+        "BloodPressure",
+        "SkinThickness",
+        "Insulin",
+        "BMI",
+        "DiabetesPedigreeFunction",
+        "Age"
+    ])
 
-    scaled = scaler.transform(features)
+    prediction = pipeline.predict(input_data)[0]
+    prob = pipeline.predict_proba(input_data)[0][1] * 100
 
-    prediction = model.predict(scaled)[0]
-    prob = model.predict_proba(scaled)[0][1] * 100
-
-# =============================
-# TABS
-# =============================
-tab1, tab2, tab3 = st.tabs([
-    "📊 Patient Diagnosis",
-    "📈 Model Performance",
-    "🧾 Clinical Report"
-])
-
-# =============================
-# TAB 1
-# =============================
-with tab1:
-
-    st.subheader("Patient Risk Assessment")
-
-    if predict:
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-            st.metric("Risk Probability", f"{prob:.2f}%")
-
-        with c2:
-            if prediction == 1:
-                st.error("🚨 HIGH RISK")
-            else:
-                st.success("✅ LOW RISK")
-
-        st.divider()
-
-        st.subheader("🧠 Key Medical Indicators")
-
-        df = pd.DataFrame({
-            "Feature": [
-                "Pregnancies","Glucose","Blood Pressure",
-                "Skin Thickness","Insulin","BMI","DPF","Age"
-            ],
-            "Value": [
-                pregnancies, glucose, bp, skin,
-                insulin, bmi, dpf, age
-            ]
-        })
-
-        st.bar_chart(df.set_index("Feature"))
-
+    if prediction == 1:
+        st.error(f"🚨 HIGH RISK ({prob:.2f}%)")
     else:
-        st.info("Enter patient data and click RUN ANALYSIS.")
-
-# =============================
-# TAB 2
-# =============================
-with tab2:
-
-    st.subheader("📈 Model Evaluation Dashboard")
-
-    metrics = {
-        "Accuracy": 0.77,
-        "Precision": 0.75,
-        "Recall": 0.73,
-        "F1 Score": 0.74
-    }
-
-    colA, colB = st.columns(2)
-
-    with colA:
-        for k, v in metrics.items():
-            st.metric(k, f"{v*100:.2f}%")
-
-    with colB:
-        fig, ax = plt.subplots()
-        ax.bar(metrics.keys(), metrics.values(), color="#d60000")
-        ax.set_ylim(0, 1)
-        ax.set_title("Model Performance")
-        st.pyplot(fig)
-
-# =============================
-# TAB 3
-# =============================
-with tab3:
-
-    st.subheader("🧾 Clinical Report")
-
-    if predict:
-
-        status = "HIGH RISK" if prediction == 1 else "LOW RISK"
-
-        report = f"""
-DIABETES RISK CLINICAL REPORT
-================================
-
-Pregnancies: {pregnancies}
-Glucose: {glucose}
-Blood Pressure: {bp}
-Skin Thickness: {skin}
-Insulin: {insulin}
-BMI: {bmi}
-Diabetes Pedigree Function: {dpf}
-Age: {age}
-
-FINAL STATUS: {status}
-"""
-
-        st.download_button(
-            "📄 Download Clinical Report",
-            report,
-            file_name="diabetes_report.txt"
-        )
-
-    else:
-        st.info("Run analysis to generate clinical report.")
+        st.success(f"✅ LOW RISK ({prob:.2f}%)")

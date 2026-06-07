@@ -212,10 +212,10 @@ with tab2:
     st.subheader("📈 Model Evaluation Dashboard")
 
     metrics = {
-        "Accuracy": 0.77,
-        "Precision": 0.75,
-        "Recall": 0.73,
-        "F1 Score": 0.74
+        "Accuracy": 0.76,
+        "Precision": 0.71,
+        "Recall": 0.54,
+        "F1 Score": 0.61
     }
 
     colA, colB = st.columns(2)
